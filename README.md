@@ -9,10 +9,10 @@
 ### Live Examples:
 
 #### Example #1
-https://bug7a.github.io/smart-data-table/02-comp-m3-samples/smart-table.htm
+https://bug7a.github.io/js-smart-data-table/02-comp-m3-samples/smart-table.htm
 
 #### Example #2
-https://bug7a.github.io/smart-data-table/02-comp-m3-samples/smart-table-2.htm
+https://bug7a.github.io/js-smart-data-table/02-comp-m3-samples/smart-table-2.htm
 
 ---
 
