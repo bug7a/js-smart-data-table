@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Smart Table Component Sample</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- LIBRARY FILES -->
+    <link rel="stylesheet" type="text/css" href="../basic/basic.min.css">
+    <script src="../basic/basic.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../basic/scroll-bar.js" type="text/javascript" charset="utf-8"></script>
+
+    <!-- COMPONENT FILES -->
+     <script src="../comp-m2/search-input-v2.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../comp-m3/smart-table.js" type="text/javascript" charset="utf-8"></script>
+
+    <script>
+        window.onload = function () {
+
+            page.color = "whitesmoke";
+
+            // PAGE LAYOUT
+
+
+            HGroup({
+                align: "top left",
+                padding: [5, 5],
+            });
+
+                window.smartTable1 = SmartTable({
+                    titleDataList: [
+                        { name: "ID", dataTitle: "id", dataType:"integer", width: 100, shortable: 1 },
+                        { name: "NAME", dataTitle: "name", dataType:"string", width: 100, shortable: 1 },
+                        { name: "EMAIL", dataTitle: "email", dataType:"string", width: 290, shortable: 0 },
+                        { name: "", dataTitle: "active", dataType:"boolean", width: 40, shortable: 0 },
+                    ],
+                    itemDataList: [
+                        { id: 1, name: "Bugra", desc: "about", email: "bugra@test.com", active: 1 },
+                        { id: 2, name: "Alper", desc: "about", email: "alper@test.com", active: 1 },
+                        { id: 3, name: "Murat", desc: "about", email: "murat@test.com", active: 0 },
+                        { id: 4, name: "Deniz", desc: "about", email: "deniz@test.com", active: 1 },
+                        { id: 5, name: "Nilüfer", desc: "about", email: "nilufer@test.com", active: 1 },
+                        { id: 6, name: "Frank", desc: "about", email: "frank@test.com", active: 0 },
+                        { id: 7, name: "Dany", desc: "about", email: "dany@test.com", active: 0 },
+                        { id: 8, name: "Duygu", desc: "about", email: "duygu@test.com", active: 0 },
+                        { id: 9, name: "Filiz", desc: "about", email: "filiz@test.com", active: 1 },
+                        { id: 10, name: "Anka", desc: "about", email: "anka@test.com", active: 1 },
+                    ],
+                    onSelect: function(data) {
+                        console.log(data);
+                    },
+                    createCustomItemCell: function(itemCell, titleDataIndex) {
+
+                        // CALL ONE TIME
+
+                        // dataTitle: active
+                        if (titleDataIndex == 3) {
+
+                            itemCell.label.visible = 0;
+
+                            itemCell.boxCustom = HGroup();
+                            itemCell.add(itemCell.boxCustom);
+
+                                const _size = itemCell.height - 12;
+
+                                itemCell.boxCustom.boxCheck = Box({
+                                    width: _size,
+                                    height: _size,
+                                    border: 1,
+                                    color: "white",
+                                    round: 100,
+                                });
+                                that.elem.style.minHeight = "10px";
+                                that.elem.style.minWidth = "10px";
+
+                            endGroup();
+
+                        };
+
+                        return itemCell;
+
+                    },
+                    updateCustomItemCell: function(itemCell, titleDataIndex, data) {
+
+                        // dataTitle: active
+                        if (titleDataIndex == 3) {
+
+                            if (data == 1) {
+                                itemCell.boxCustom.boxCheck.color = "#E7BB67";
+
+                            } else {
+                                itemCell.boxCustom.boxCheck.color = "white";
+                            }
+
+                            const _size = itemCell.height - 12;
+
+                            itemCell.boxCustom.boxCheck.width = _size;
+                            itemCell.boxCustom.boxCheck.height = _size;
+
+                        };
+
+                    },
+                });
+
+            endGroup();
+            //that.left = 10;
+            //that.top = 10;
+
+            smartTable1.generateTestData();
+
+            // Hybrid useage with HTML pages:
+            // document.getElementById("element-id").appendChild(smartTable1.elem);
+
+        };
+    </script>
+</head>
+
+<body></body>
+
+</html>

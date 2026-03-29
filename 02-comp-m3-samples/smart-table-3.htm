@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Smart Table - Edit & Delete Sample</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- LIBRARY FILES -->
+    <link rel="stylesheet" type="text/css" href="../basic/basic.min.css">
+    <script src="../basic/basic.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../basic/scroll-bar.js" type="text/javascript" charset="utf-8"></script>
+
+    <!-- COMPONENT FILES -->
+    <script src="../comp-m2/search-input-v2.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../comp-m2/tooltip.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../comp-m2/input-b.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../comp-m3/hold-to-confirm-button.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../comp-m3/smart-table.js" type="text/javascript" charset="utf-8"></script>
+
+    <script>
+
+        let itemDataList = [
+            { id: 1, name: "Bugra", desc: "about", email: "bugra@test.com", active: 1 },
+            { id: 2, name: "Alper", desc: "about", email: "alper@test.com", active: 1 },
+            { id: 3, name: "Murat", desc: "about", email: "murat@test.com", active: 0 },
+            { id: 4, name: "Deniz", desc: "about", email: "deniz@test.com", active: 1 },
+            { id: 5, name: "Nilüfer", desc: "about", email: "nilufer@test.com", active: 1 },
+            { id: 6, name: "Frank", desc: "about", email: "frank@test.com", active: 0 },
+            { id: 7, name: "Dany", desc: "about", email: "dany@test.com", active: 0 },
+            { id: 8, name: "Duygu", desc: "about", email: "duygu@test.com", active: 0 },
+            { id: 9, name: "Filiz", desc: "about", email: "filiz@test.com", active: 1 },
+            { id: 10, name: "Anka", desc: "about", email: "anka@test.com", active: 1 },
+        ];
+
+        let selectedId = null;
+
+        // Helper: Create an InputB field
+        const createInput = function (title, placeholder) {
+            return InputB({
+                width: "100%",
+                height: "auto",
+                leftPadding: 20,
+                rightPadding: 20,
+                titleText: title,
+                placeholder: placeholder,
+                inputValue: "",
+                maxChar: 100,
+                createDescription: 0,
+                backgroundColor: "#F6F6F6",
+                selectedBackgroundColor: "#F3F4E0",
+                lineColor: "#141414",
+                selectedLineColor: "#65A293",
+                createLeftBox: 0,
+                createRightBox: 0,
+                createUnit: 0,
+            });
+        };
+
+        // Fill input fields from selected data
+        const fillForm = function (data) {
+            selectedId = data.id;
+            inputId.setInputValue(String(data.id));
+            inputName.setInputValue(data.name);
+            inputEmail.setInputValue(data.email);
+            inputActive.setInputValue(String(data.active));
+            lblStatus.text = "Selected ID: " + data.id;
+        };
+
+        // Clear input fields
+        const clearForm = function () {
+            selectedId = null;
+            inputId.setInputValue("");
+            inputName.setInputValue("");
+            inputEmail.setInputValue("");
+            inputActive.setInputValue("");
+            lblStatus.text = "No record selected";
+        };
+
+        let inputId, inputName, inputEmail, inputActive, lblStatus;
+
+        window.onload = function () {
+
+            page.color = "whitesmoke";
+
+            // LEFT: Form Panel
+            VGroup({
+                width: "50%",
+                gap: 8,
+                padding: [0, 16],
+                align: "top left",
+            });
+
+            // Title
+            Label({
+                text: "Record Details",
+                fontSize: 20,
+                padding: [20, 6],
+            });
+            that.elem.style.fontFamily = "opensans-bold";
+            that.elem.style.marginBottom = "8px";
+
+            // ID (read-only)
+            inputId = createInput("ID", "Auto");
+
+            // Name
+            inputName = createInput("NAME", "Enter name");
+
+            // Email
+            inputEmail = createInput("EMAIL", "Enter email");
+
+            // Active
+            inputActive = createInput("ACTIVE", "1 or 0");
+
+            // Status Label
+            lblStatus = Label({
+                text: "No record selected",
+                fontSize: 14,
+                padding: [20, 6],
+            });
+            that.elem.style.color = "#999";
+            that.elem.style.marginTop = "8px";
+
+            // Buttons Row
+            HGroup({
+                fit: 1,
+                gap: 8,
+                padding: [20, 8],
+                align: "left center",
+            });
+
+            // Edit Button
+            Button({
+                text: "Update Record",
+                width: "auto",
+                padding: [12, 0],
+                color: "#65A293",
+                minimal: 1,
+            });
+            that.on("click", function () {
+                if (selectedId === null) return;
+
+                const index = itemDataList.findIndex(function (item) {
+                    return item.id === selectedId;
+                });
+
+                if (index !== -1) {
+                    itemDataList[index].name = inputName.getInputValue();
+                    itemDataList[index].email = inputEmail.getInputValue();
+                    itemDataList[index].active = parseInt(inputActive.getInputValue()) || 0;
+                    smartTable1.setItemDataList(itemDataList);
+                    lblStatus.text = "Updated ID: " + selectedId;
+                }
+            });
+
+            // Delete Button (Hold to Confirm)
+            const _assetsPath = "../comp-m3/hold-to-confirm-button/";
+            const btnDelete = HoldToConfirmButton({
+                width: "auto",
+                labelText: "Hold to Delete",
+                completedText: "DELETED",
+                iconFile: _assetsPath + "trash.png",
+                holdingIconFile: _assetsPath + "trash-red.png",
+                style: {
+                    layout: { gap: 4, padding: [18, 5], },
+                    label: { fontSize: 16, textColor: Black(0.65), },
+                    box: { color: "white", border: 1, borderColor: Black(0.3), round: 8, },
+                    holdingBox: { color: "#FFD1CB", },
+                }
+            });
+
+            btnDelete.onConfirm = function (self) {
+                if (selectedId === null) return;
+
+                const index = itemDataList.findIndex(function (item) {
+                    return item.id === selectedId;
+                });
+
+                if (index !== -1) {
+                    itemDataList.splice(index, 1);
+                    smartTable1.setItemDataList(itemDataList);
+                    lblStatus.text = "Deleted ID: " + selectedId;
+                    clearForm();
+                }
+            };
+
+            // Clear Form Button
+            Button({
+                text: "Clear Form",
+                width: "auto",
+                padding: [12, 0],
+                color: "lightgray",
+                minimal: 1,
+            });
+            that.on("click", function () {
+                clearForm();
+            });
+
+            endGroup();
+
+            endGroup();
+
+            // RIGHT: Smart Data Table
+            window.smartTable1 = SmartTable({
+                top: 0,
+                titleDataList: [
+                    { name: "ID", dataTitle: "id", dataType: "integer", width: 60, shortable: 1 },
+                    { name: "NAME", dataTitle: "name", dataType: "string", width: 120, shortable: 1 },
+                    { name: "EMAIL", dataTitle: "email", dataType: "string", width: 200, shortable: 0 },
+                    { name: "ACTIVE", dataTitle: "active", dataType: "boolean", width: 60, shortable: 0 },
+                ],
+                onSelect: function (data) {
+                    fillForm(data);
+                },
+                style: { width: "50%", height: "100%" },
+            });
+            smartTable1.right = smartTable1.getVerticalScrollWidth() + 2;
+            smartTable1.setItemDataList(itemDataList);
+
+        };
+
+    </script>
+</head>
+
+<body></body>
+
+</html>

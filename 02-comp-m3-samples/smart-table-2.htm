@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Smart Table Component Sample</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- LIBRARY FILES -->
+    <link rel="stylesheet" type="text/css" href="../basic/basic.min.css">
+    <script src="../basic/basic.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../basic/scroll-bar.js" type="text/javascript" charset="utf-8"></script>
+
+    <!-- COMPONENT FILES -->
+    <script src="../comp-m2/search-input-v2.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../comp-m3/smart-table.js" type="text/javascript" charset="utf-8"></script>
+
+    <script>
+
+        let itemDataList = [
+            { id: 1, name: "Bugra", desc: "about", email: "bugra@test.com", active: 1 },
+            { id: 2, name: "Alper", desc: "about", email: "alper@test.com", active: 1 },
+            { id: 3, name: "Murat", desc: "about", email: "murat@test.com", active: 0 },
+            { id: 4, name: "Deniz", desc: "about", email: "deniz@test.com", active: 1 },
+            { id: 5, name: "Nilüfer", desc: "about", email: "nilufer@test.com", active: 1 },
+            { id: 6, name: "Frank", desc: "about", email: "frank@test.com", active: 0 },
+            { id: 7, name: "Dany", desc: "about", email: "dany@test.com", active: 0 },
+            { id: 8, name: "Duygu", desc: "about", email: "duygu@test.com", active: 0 },
+            { id: 9, name: "Filiz", desc: "about", email: "filiz@test.com", active: 1 },
+            { id: 10, name: "Anka", desc: "about", email: "anka@test.com", active: 1 },
+        ];
+
+        const ListButton = function(text) {
+
+            const btn = Button({
+                text: text,
+                width: 280,
+                padding: [12, 0],
+                color: "lightgray",
+                minimal: 1,
+            });
+
+            return btn;
+
+        };
+
+        window.onload = function () {
+
+            page.color = "whitesmoke";
+
+            // Button Group
+            VGroup({
+                width: "50%",
+                gap: 4,
+            });
+
+                // Clean Data Table
+                ListButton("Clear All");
+                that.on("click", function () {
+                    itemDataList = [];
+                    smartTable1.setItemDataList([]);
+                });
+
+                // Insert New Line
+                let newId = 11;
+                ListButton("Insert New Row");
+                that.on("click", function () {
+                    itemDataList.push({ id: newId, name: "User " + newId, desc: "desc", email: "user" + newId + "@test.com", active: newId % 2 });
+                    newId++;
+                    smartTable1.setItemDataList(itemDataList);
+                });
+
+                // Delete Last Row
+                ListButton("Delete Last Row");
+                that.on("click", function () {
+                    if (itemDataList.length > 0) {
+                        itemDataList.pop();
+                        smartTable1.setItemDataList(itemDataList);
+                    }
+                });
+
+                // Restore Original Data
+                ListButton("Restore Original Data");
+                that.on("click", function () {
+                    itemDataList = [
+                        { id: 1, name: "Bugra", desc: "about", email: "bugra@test.com", active: 1 },
+                        { id: 2, name: "Alper", desc: "about", email: "alper@test.com", active: 1 },
+                        { id: 3, name: "Murat", desc: "about", email: "murat@test.com", active: 0 },
+                        { id: 4, name: "Deniz", desc: "about", email: "deniz@test.com", active: 1 },
+                        { id: 5, name: "Nilüfer", desc: "about", email: "nilufer@test.com", active: 1 },
+                        { id: 6, name: "Frank", desc: "about", email: "frank@test.com", active: 0 },
+                        { id: 7, name: "Dany", desc: "about", email: "dany@test.com", active: 0 },
+                        { id: 8, name: "Duygu", desc: "about", email: "duygu@test.com", active: 0 },
+                        { id: 9, name: "Filiz", desc: "about", email: "filiz@test.com", active: 1 },
+                        { id: 10, name: "Anka", desc: "about", email: "anka@test.com", active: 1 },
+                    ];
+                    newId = 11;
+                    smartTable1.setItemDataList(itemDataList);
+                });
+
+                // Load 1M Test Data
+                ListButton("Load 1M Test Data");
+                that.on("click", function () {
+                    smartTable1.generateTestData();
+                    smartTable1.filterAndSortData();
+                });
+
+                // Scroll To Top
+                ListButton("Scroll To Top");
+                that.on("click", function () {
+                    smartTable1.setScrollToTop();
+                    smartTable1.refreshData();
+                });
+
+                // Widen EMAIL Column
+                ListButton("Widen EMAIL Column");
+                that.on("click", function () {
+                    smartTable1.setTitleCellWidth(2, 400);
+                });
+
+                // Toggle Row Highlight
+                ListButton("Toggle Row Highlight");
+                that.on("click", function () {
+                    smartTable1.highlightLine = !smartTable1.highlightLine;
+                });
+
+                // Toggle Column Highlight
+                ListButton("Toggle Column Highlight");
+                that.on("click", function () {
+                    smartTable1.highlightTitle = !smartTable1.highlightTitle;
+                });
+
+            endGroup();
+
+            // Smart Data Table
+            window.smartTable1 = SmartTable({
+                top: 0,
+                titleDataList: [
+                    { name: "ID", dataTitle: "id", dataType: "integer", width: 100, shortable: 1 },
+                    { name: "NAME", dataTitle: "name", dataType: "string", width: 100, shortable: 1 },
+                    { name: "EMAIL", dataTitle: "email", dataType: "string", width: 290, shortable: 0 },
+                    { name: "", dataTitle: "active", dataType: "boolean", width: 40, shortable: 0 },
+                ],
+                onSelect: function (data) {
+                    console.log(data);
+                },
+                style: { width: "50%", height: "100%" },
+            });
+            smartTable1.right = smartTable1.getVerticalScrollWidth() + 2;
+            smartTable1.setItemDataList(itemDataList);
+
+            // Hybrid useage with HTML pages:
+            // document.getElementById("element-id").appendChild(smartTable1.elem);
+
+        };
+
+    </script>
+</head>
+
+<body></body>
+
+</html>
