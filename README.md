@@ -14,6 +14,7 @@ https://bug7a.github.io/js-smart-data-table/02-comp-m3-samples/smart-table-2.htm
 https://bug7a.github.io/js-smart-data-table/02-comp-m3-samples/smart-table-3.htm
 
 <br>
+
 ![Preview](https://bug7a.github.io/js-smart-data-table/preview.png)
 
 <br>
