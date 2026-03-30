@@ -18,6 +18,7 @@ Webpage: https://bug7a.github.io/js-components/
 - filter da bir title seçilebilmeli, default: ALL olsun.
 - Eğer itemHeight 20px den küçük ise otomatik itemLineCount düşür ve eğer itemHeight büyükse 100px den itemLineCount arttır.
 - sort yaparken, arama yaparken (waitAndRun ekle) bir yüklenme görünsün çünkü 1milyon kayıtta bu işlem zaman alıyor.
+- sort parametre olarak verildiğinde, sort iconları güncellenmeli. Ve fonksiyon ile kontrol edilebilmeli.
 
 */
 
@@ -25,6 +26,7 @@ Webpage: https://bug7a.github.io/js-components/
 
 // Default values:
 const SmartTableDefaults = {
+
     key: "0",
     titleHeight: 50,
     itemHeight: 40,
@@ -37,8 +39,6 @@ const SmartTableDefaults = {
     searchKeyword: "",
     sortByTitleIndex: 0,
     sortDirection: "A-Z", // "A-Z" or "Z-A"
-    verticalScrollWidth: 20,
-    verticalScrollMargin: 2,
     fillTestData: 0,
     onSelect: function (itemData) { },
     createCustomItemCell: function (cell, titleDataIndex) { return cell },
@@ -75,18 +75,46 @@ const SmartTableDefaults = {
         neverHide: 0,
         showDots: 0,
     },
+    searchInputParams: {
+        width: "50%",
+        height: 36,
+        border: 1,
+        round: 8,
+        color: "white",
+        searchIconSize: 16,
+        placeholderText: "Filter",
+        fontSize: 16,
+        borderColor: "rgba(0, 0, 0, 0.4)",
+        borderBottomStyle: "1px solid rgba(0, 0, 0, 0.4)",
+        searchIconFile: "../comp-m2/search-input-v2/filter.png",
+    },
     style: {
-        width: "100%", height: "100%", round: 6, highlightItemCellColor: "#F3E7C2", highlightTitleCellColor: White(0.2),
-        box: {},
+
+        width: "auto",
+        height: "auto",
+        round: 6,
+        line1Color: "white",
+        line2Color: "whitesmoke",
+        highlightItemCellColor: "#F3E7C2",
+        highlightTitleCellColor: White(0.2),
+        verticalScrollWidth: 20,
+        verticalScrollMargin: 2,
+        btnScrollDownIconFile: "../comp-m3/smart-table/down.png",
+        btnScrollUpIconFile: "../comp-m3/smart-table/up.png",
+
+        box: { color: "white" },
         boxBorder: { color: "transparent", border: 2, borderColor: Black(0.8) },
-        boxTitleLine: {},
-        boxTitleCell: {},
-        lblTitleCell: {},
-        boxItemLine: {},
-        boxItemCell: {},
-        lblItemCell: {},
+        boxTitleLine: { color: "#65A293", },
+        boxTitleCell: { padding: [8, 0], borderRight: "1px solid rgba(0, 0, 0, 0.5)", borderBottom: "2px solid #141414", },
+        lblTitleCell: { fontSize: 20, fontFamily: "opensans", },
+        boxItemCell: { borderBottom: "1px solid darkgray", borderRight: "1px solid rgba(0, 0, 0, 0.05)", padding: [8, 0], },
+        lblItemCell: { fontSize: 20, textColor: Black(0.75), fontFamily: "opensans", },
         boxInfoLine: { color: "#E4E4E4", },
         lblNoDataFound: { color: "lightgray", padding: [8, 2], fontSize: 14, round: 8, border: 1, borderColor: Black(0.4), },
+        btnScrollCenter: { color: "white", round: 100, borderColor: "rgba(0,0,0,0.4)", border: 1, },
+        btnScrollUp: { color: "lightgray", round: 100, border: 1, },
+        btnScrollDown: { color: "lightgray", round: 100, border: 1, },
+
     },
 };
 
@@ -95,43 +123,20 @@ const SmartTable = function (params = {}) {
     // Marge params:
     mergeIntoIfMissing(params, SmartTableDefaults);
 
-    /*
-    // Yükseklik otomatik değil ise, ItemCell yüksekliğini otomatik hesapla.
-    if (params.height != "auto") {
-        params.recalcItemHeight = true;
-    } else {
-        params.recalcItemHeight = false;
-    }
-
-    // Eğer genişlik tam olacak ise, scroll için boş alan ekle.
-    if (params.width == "100%") {
-        params.width = "calc(100% - 22px)";
-    }
-    */
-
     // BOX: Component container
     let box = startObject(params);
-
-    /*
-    // Item yüksekliği otomatik hesaplanacak.
-    if (box.recalcItemHeight) {
-        box.itemHeight = (box.height - box.titleHeight - box.infoHeight) / box.itemLineCount;
-    }
-    */
-
-    // NOTE: Parent container is box.containerBox
 
     // *** PUBLIC VARIABLES:
     // State of component [var]
     box.state = "normal";
     // Created items by data [var]
-    box.visibleItemDataList = [...box.itemDataList];
-    // [var]
-    box.itemLineList = [];
+    box.visibleItemDataList = [];
     // [var]
     box.titleCellList = [];
     // [var]
     box.titleCellCount = 0;
+    // [var]
+    box.itemLineList = [];
     // [var]
     box.startedItemIndexForScrolling = 0;
     // Scroll haraketi için gerekli değişkenler [var]
@@ -140,7 +145,6 @@ const SmartTable = function (params = {}) {
     box.recalcItemHeight = 0;
     // [var]
     box.resizeTimer = null;
-    box.filterTimer = null;
 
     // *** PUBLIC FUNCTIONS:
 
@@ -220,6 +224,7 @@ const SmartTable = function (params = {}) {
             // Eğer veri varsa satırı güncelle, yoksa temizle/gizle
             if (_rowData) {
                 _itemLine.opacity = 1; // Veya opacity: 1
+                _itemLine.itemData = _rowData; // WHY: Line a basıldığında bu bilgi kullanılacak.
                 //_itemLine.visible = 1;
                 for (let j = 0; j < _titleCount; j++) {
 
@@ -242,15 +247,8 @@ const SmartTable = function (params = {}) {
             }
         }
 
-        if (_dataList.length > _lineCount) {
-            // Scroll buttonlarını göster.
-            box.setVerticalScrollEnabled(true);
-
-        } else {
-            // Scroll butonlarını gizle.
-            box.setVerticalScrollEnabled(false);
-        }
-
+        // Scroll buttonlarını göster/gizle.
+        box.setVerticalScrollEnabled((_dataList.length > _lineCount) ? true : false);
         box.updateInfoLabel();
 
     };
@@ -260,21 +258,21 @@ const SmartTable = function (params = {}) {
         // Sadece kullanılabilir durumda ise enabled yapılabilir.
         if (enabled && box.visibleItemDataList.length > box.itemLineCount) {
             // Scroll buttonlarını göster.
-            box.icoScroll.opacity = 1;
-            box.icoScroll.clickable = 1;
-            box.btnUp.opacity = 1;
-            box.btnUp.clickable = 1;
-            box.btnDown.opacity = 1;
-            box.btnDown.clickable = 1;
+            box.btnScrollCenter.opacity = 1;
+            box.btnScrollCenter.clickable = 1;
+            box.btnScrollUp.opacity = 1;
+            box.btnScrollUp.clickable = 1;
+            box.btnScrollDown.opacity = 1;
+            box.btnScrollDown.clickable = 1;
 
         } else {
             // Scroll butonlarını gizle.
-            box.icoScroll.opacity = 0;
-            box.icoScroll.clickable = 0;
-            box.btnUp.opacity = 0.5;
-            box.btnUp.clickable = 0;
-            box.btnDown.opacity = 0.5;
-            box.btnDown.clickable = 0;
+            box.btnScrollCenter.opacity = 0;
+            box.btnScrollCenter.clickable = 0;
+            box.btnScrollUp.opacity = 0.5;
+            box.btnScrollUp.clickable = 0;
+            box.btnScrollDown.opacity = 0.5;
+            box.btnScrollDown.clickable = 0;
         }
 
     }
@@ -362,23 +360,25 @@ const SmartTable = function (params = {}) {
             flow: "horizontal",
             align: "center left",
             width: titleData.width || 100,
-            padding: [8, 0],
+            padding: box.style.boxTitleCell.padding,
             height: box.titleHeight,
             color: "transparent",
             border: 0,
             position: "relative",
         });
+        that.elem.style.borderRight = box.style.boxTitleCell.borderRight;
+        that.elem.style.borderBottom = box.style.boxTitleCell.borderBottom;
+        that.elem.style.cursor = "pointer";
+
         that.titleCellIndex = titleCellIndex;
         that.titleDataTitle = titleData.dataTitle;
         that.shortable = titleData.shortable;
-        that.elem.style.borderRight = "1px solid rgba(0, 0, 0, 0.5)";
-        that.elem.style.borderBottom = "2px solid #141414";
-        that.elem.style.fontFamily = "opensans-bold";
-        that.elem.style.cursor = "pointer";
 
         cell.label = Label({
             text: titleData.name,
+            ...box.style.lblTitleCell,
         });
+        that.elem.style.fontFamily = box.style.lblTitleCell.fontFamily;
 
         endAutoLayout();
 
@@ -477,11 +477,13 @@ const SmartTable = function (params = {}) {
             align: "top left",
             padding: [0, 0],
             gap: 0,
-            color: (itemLineIndex % 2) ? "whitesmoke" : "white",
+            color: (itemLineIndex % 2) ? box.style.line2Color : box.style.line1Color,
             position: "relative",
             //opacity: 0.5,
             // NOTE: this width, height: "100%" as default.
         });
+        //that.itemData = itemData;
+        //that.itemLineIndex = itemLineIndex;
 
         box.titleDataList.forEach(function (titleData, titleDataIndex) {
             // Item Cell
@@ -490,11 +492,11 @@ const SmartTable = function (params = {}) {
 
         endGroup();
 
-        itemLine.on("click", function () {
-            box.onSelect(itemData);
+        itemLine.on("click", function (self) {
+            box.onSelect(self.itemData);
         });
 
-        itemLine.visible = 0; // WHY: Yüksekli yeniden hesaplanması gerekirse, ekranda kırpma yapması için gizli oluşturuluyor.
+        if (box.style.height != "auto") itemLine.visible = 0; // WHY: Yüksekli yeniden hesaplanması gerekirse, ekranda kırpma yapması için gizli oluşturuluyor.
         return itemLine;
 
     };
@@ -506,20 +508,22 @@ const SmartTable = function (params = {}) {
         let itemCell = AutoLayout({
             align: "center left",
             width: cellWidth || 100,
-            padding: [8, 0],
+            padding: box.style.boxItemCell.padding,
             height: "100%",
             color: "transparent",
             border: 0,
         });
-        that.elem.style.borderBottom = "1px solid darkgray";
-        that.elem.style.borderRight = "1px solid rgba(0, 0, 0, 0.05)";
+        that.elem.style.borderBottom = box.style.boxItemCell.borderBottom;
+        that.elem.style.borderRight = box.style.boxItemCell.borderRight;
         that.elem.style.cursor = "pointer";
 
         itemCell.label = Label({
             text: "",
+            ...box.style.lblItemCell,
         });
         that.elem.style.whiteSpace = "nowrap";
         that.elem.style.textOverflow = "ellipsis";
+        that.elem.style.fontFamily = box.style.lblItemCell.fontFamily;
 
         endAutoLayout();
 
@@ -553,7 +557,7 @@ const SmartTable = function (params = {}) {
         // Değişkenler
         box.scrollVars.minY = box.titleHeight;
         box.scrollVars.scrollAreaHeight = box.height - box.titleHeight - box.infoHeight;
-        box.scrollVars.scrollIconHeight = box.icoScroll.height;
+        box.scrollVars.scrollIconHeight = box.btnScrollCenter.height;
         box.scrollVars.maxY = box.scrollVars.minY + box.scrollVars.scrollAreaHeight - box.scrollVars.scrollIconHeight;
         box.scrollVars.totalPath = box.scrollVars.maxY - box.scrollVars.minY;
 
@@ -571,16 +575,16 @@ const SmartTable = function (params = {}) {
         if (maxScrollIndex === 0) return;
 
         const percent = box.startedItemIndexForScrolling / maxScrollIndex;
-        box.icoScroll.top = box.scrollVars.minY + (percent * box.scrollVars.totalPath);
+        box.btnScrollCenter.top = box.scrollVars.minY + (percent * box.scrollVars.totalPath);
 
     };
 
     box.createScrollEvents = function () {
 
         // Sürükleme ayarları
-        box.icoScroll.clickable = 1;
-        box.icoScroll.elem.setAttribute("draggable", "false");
-        box.icoScroll.elem.style.cursor = "grab";
+        box.btnScrollCenter.clickable = 1;
+        box.btnScrollCenter.elem.setAttribute("draggable", "false");
+        box.btnScrollCenter.elem.style.cursor = "grab";
 
         // Değişkenler
         box.initScrollMetrics();
@@ -616,12 +620,12 @@ const SmartTable = function (params = {}) {
         }, { passive: false });
 
         // 2. MOUSE DRAG (Sürükleme)
-        box.icoScroll.on("mousedown", function (self, event) {
+        box.btnScrollCenter.on("mousedown", function (self, event) {
 
             box.scrollVars.isDragging = true;
             box.scrollVars.startY = event.clientY;
-            box.scrollVars.startTop = box.icoScroll.top;
-            box.icoScroll.elem.style.cursor = "grabbing";
+            box.scrollVars.startTop = box.btnScrollCenter.top;
+            box.btnScrollCenter.elem.style.cursor = "grabbing";
             document.body.style.userSelect = "none";
 
         });
@@ -636,7 +640,7 @@ const SmartTable = function (params = {}) {
             if (newTop < box.scrollVars.minY) newTop = box.scrollVars.minY;
             if (newTop > box.scrollVars.maxY) newTop = box.scrollVars.maxY;
 
-            box.icoScroll.top = newTop;
+            box.btnScrollCenter.top = newTop;
 
             const currentProgress = (newTop - box.scrollVars.minY) / box.scrollVars.totalPath;
             const dataLength = box.visibleItemDataList.length;
@@ -655,7 +659,7 @@ const SmartTable = function (params = {}) {
 
             if (box.scrollVars.isDragging) {
                 box.scrollVars.isDragging = false;
-                box.icoScroll.elem.style.cursor = "grab";
+                box.btnScrollCenter.elem.style.cursor = "grab";
                 document.body.style.userSelect = "auto";
             }
 
@@ -664,6 +668,7 @@ const SmartTable = function (params = {}) {
     };
 
     box.scrollPage = function (direction) { // +1 ise aşağı (bir sayfa boyu), -1 ise yukarı
+
         const dataLength = box.visibleItemDataList.length;
         const maxScrollIndex = Math.max(0, dataLength - box.itemLineCount);
 
@@ -714,11 +719,11 @@ const SmartTable = function (params = {}) {
 
     box.setScrollToTop = function () {
         box.startedItemIndexForScrolling = 0;
-        box.icoScroll.top = box.scrollVars.minY;
+        box.btnScrollCenter.top = box.scrollVars.minY;
     };
 
     box.setItemDataList = function (itemDataList) {
-        box.itemDataList = itemDataList;
+        box.itemDataList = [...itemDataList];
         box.filterAndSortData();
     };
 
@@ -806,46 +811,49 @@ const SmartTable = function (params = {}) {
 
     box.createVerticalScroll = function () {
 
-        box.icoScroll = startBox(0, 0, 20, 50);
-        that.color = "white";
-        that.round = 100;
-        that.borderColor = "rgba(0,0,0,0.4)"
-        that.border = 1;
-        that.opacity = 0;
-        that.clickable = 0;
-        //that.color = "transparent";
-        that.right = (box.icoScroll.width * -1) - 2;
-        that.top = box.titleHeight;
+        const scrollWidth = box.style.verticalScrollWidth;
+        const leftMargin = box.style.verticalScrollMargin;
+        const scrollRight = (scrollWidth + leftMargin) * -1;
+
+        box.btnScrollCenter = startBox(0, 0, scrollWidth, 50, {
+            right: scrollRight,
+            top: box.titleHeight,
+            opacity: 0,
+            clickable: 0,
+            ...box.style.btnScrollCenter,
+        });
+
         Icon(0, 0, "100%", "100%");
         that.load("../comp-m3/smart-table/scroll.png");
+
         endBox();
 
-        box.btnUp = Box(0, 0, 20, box.titleHeight);
-        that.right = -22;
-        that.color = "lightgray";
-        that.round = 100;
-        that.border = 1;
+        box.btnScrollUp = Box(0, 0, scrollWidth, box.titleHeight, {
+            right: scrollRight,
+            ...box.style.btnScrollUp,
+        });
         that.elem.style.cursor = "pointer";
         that.on("click", function (self, event) {
             box.scrollPage(-1);
         });
-        Icon(0, 0, "100%", "100%");
-        box.btnUp.add(that);
-        that.load("../comp-m3/smart-table/up.png");
 
-        box.btnDown = Box(0, 0, 20, box.infoHeight);
-        that.right = -22;
-        that.bottom = 0;
-        that.color = "lightgray";
-        that.round = 100;
-        that.border = 1;
+        Icon(0, 0, "100%", "100%");
+        box.btnScrollUp.add(that);
+        that.load(box.style.btnScrollUpIconFile);
+
+        box.btnScrollDown = Box(0, 0, scrollWidth, box.infoHeight, {
+            right: scrollRight,
+            bottom: 0,
+            ...box.style.btnScrollDown,
+        });
         that.elem.style.cursor = "pointer";
         that.on("click", function (self, event) {
             box.scrollPage(1);
         });
+
         Icon(0, 0, "100%", "100%");
-        box.btnDown.add(that);
-        that.load("../comp-m3/smart-table/down.png");
+        box.btnScrollDown.add(that);
+        that.load(box.style.btnScrollDownIconFile);
 
     };
 
@@ -857,24 +865,11 @@ const SmartTable = function (params = {}) {
         });
         box.boxInfoLine.add(that);
 
-        SearchInput({
-            width: "50%",
-            height: 36,
-            border: 1,
-            round: 8,
-            color: "white",
-            searchIconSize: 16,
-            placeholderText: "Filter",
-            fontSize: 16,
-            borderColor: "rgba(0, 0, 0, 0.4)",
-            borderBottomStyle: "1px solid rgba(0, 0, 0, 0.4)",
-            searchIconFile: "../comp-m2/search-input-v2/filter.png",
-        });
+        SearchInput(box.searchInputParams);
         that.setText(box.searchKeyword);
         that.onSubmit = function (searchedText, self) {
             box.searchKeyword = searchedText;
             box.filterAndSortData();
-            //box.filterTimer = waitAndRun(box.filterTimer, box.filterAndSortData, 1000);
         }
 
         endGroup();
@@ -903,10 +898,10 @@ const SmartTable = function (params = {}) {
         box.lblSelectedSortKey = Label({
             text: "ALL",
             opacity: 1,
+            clickable: 1,
             ...box.style.lblNoDataFound,
         });
         that.elem.style.cursor = "pointer";
-        that.clickable = 1;
         that.setMotion("opacity 0.2s")
 
         endGroup();
@@ -980,7 +975,7 @@ const SmartTable = function (params = {}) {
 
         // Eğer genişlik tam olacak ise, scroll için boş alan ekle.
         if (width == "100%") {
-            box.width = "calc(100% - " + (box.verticalScrollWidth + box.verticalScrollMargin) + "px)";
+            box.width = "calc(100% - " + (box.style.verticalScrollWidth + box.style.verticalScrollMargin) + "px)";
         } else {
             box.width = width;
         }
@@ -988,11 +983,11 @@ const SmartTable = function (params = {}) {
     };
 
     box.getTotalWidth = function () {
-        return box.width + box.verticalScrollWidth + box.verticalScrollMargin;
+        return box.width + box.style.verticalScrollWidth + box.style.verticalScrollMargin;
     }
 
     box.getVerticalScrollWidth = function () {
-        return box.verticalScrollWidth + box.verticalScrollMargin;
+        return box.style.verticalScrollWidth + box.style.verticalScrollMargin;
     };
 
     box.createLoading = function () {
@@ -1023,6 +1018,22 @@ const SmartTable = function (params = {}) {
             box.boxLoading.visible = 0;
             box.setVerticalScrollEnabled(true);
         }
+    };
+
+    box.createNoDataFoundLabel = function () {
+
+        // Centered
+        HGroup();
+
+        box.lblNoDataFound = Label({
+            text: box.noDataFoundAlert,
+            opacity: 0,
+            ...box.style.lblNoDataFound,
+        });
+        that.setMotion("opacity 0.2s")
+
+        endGroup();
+
     };
 
     box.createResizeEvent = function () {
@@ -1061,23 +1072,20 @@ const SmartTable = function (params = {}) {
     // *** OBJECT VIEW:
     box.init = function () {
 
-        //box.elem.style.cursor = "pointer";
         box.clickable = 1;
-        // Show outside of the box. box.lblBadget will be shown at out of container.
+        // Show outside of the box.
         box.clipContent = 0;
-        //box.scrollY = 1;
-        box.color = "white";
+        box.color = box.style.color;
         box.round = box.style.round;
-        //box.elem.style.marginRight = "22px";
-
         if (box.invertColor == 1) box.elem.style.filter = "invert(100%)";
         box.setWidth(box.style.width);
         box.setHeight(box.style.height);
 
-        // create the structure
+
+        // CREATE the structure:
 
         // Tıtle and Item Lıne Group Container
-        box.boxHorizontalScrollableGroup = VGroup({
+        box.boxHorizontalScrollable = VGroup({
             align: "top left",
             width: "auto",
             height: "auto",
@@ -1091,7 +1099,7 @@ const SmartTable = function (params = {}) {
         that.elem.style.borderTopRightRadius = box.style.round + "px";    // Üst Sağ Köşe
         that.elem.style.borderBottomRightRadius = "0px"; // Alt Sağ Köşe
         that.elem.style.borderBottomLeftRadius = "0px";   // Alt Sol Köşe
-        that.elem.style.marginBottom = "50px";
+        that.elem.style.marginBottom = box.infoHeight + "px";
 
         // Title Line
         box.boxTitleLine = HGroup({
@@ -1100,12 +1108,11 @@ const SmartTable = function (params = {}) {
             align: "top left",
             padding: [0, 0],
             gap: 0,
-            color: "#65A293",
+            color: box.style.boxTitleLine.color,
             // NOTE: this width, height: "100%" as default.
         });
 
-        // Title Line
-        // box.createTitleLine();
+        // TITLE CELLS WILL BE HERE
 
         endGroup();
 
@@ -1118,8 +1125,7 @@ const SmartTable = function (params = {}) {
             gap: 0,
         });
 
-        // Item Lines 
-        //box.createItemLines();
+        // ITEM LINES WILL BE HERE
 
         endGroup();
 
@@ -1142,18 +1148,7 @@ const SmartTable = function (params = {}) {
         that.clickable = 0;
 
         box.createToolbar();
-
-        // Center the label
-        HGroup();
-
-        box.lblNoDataFound = Label({
-            text: box.noDataFoundAlert,
-            opacity: 0,
-            ...box.style.lblNoDataFound,
-        });
-        that.setMotion("opacity 0.2s")
-
-        endGroup();
+        box.createNoDataFoundLabel();
 
         // boxBorder
         box.boxBorder = Box(0, 0, "100%", "100%", box.style.boxBorder);
@@ -1163,12 +1158,11 @@ const SmartTable = function (params = {}) {
 
         // SCROLL BAR: Horizontal Scroll
         box.scrollBar = ScrollBar({
-            scrollableBox: box.boxHorizontalScrollableGroup,
-            ...box.scrollbarParams,
+            scrollableBox: box.boxHorizontalScrollable,
+            ...box.scrollBarParams,
         });
 
         box.createResizeEvent();
-
         box.createLoading();
 
     };
@@ -1181,7 +1175,6 @@ const SmartTable = function (params = {}) {
     box.createScrollEvents();
     box.stretchLastCell(box.calcLastCellWidth());
     box.filterAndSortData();
-    //box.refreshData();
 
     return endObject(box);
 

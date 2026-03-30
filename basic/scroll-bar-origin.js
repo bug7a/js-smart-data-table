@@ -155,6 +155,10 @@ const ScrollBar = function(params = {}) {
             } else {
                 box.bottomRightDot.visible = 1;
             }
+        } else {
+            //box.topRightDot.visible = 0; 
+            //box.bottomLeftDot.visible = 0;
+            //box.bottomRightDot.visible = 0;
         }
     };
 
