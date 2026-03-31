@@ -130,7 +130,7 @@ const SmartTable = function (params = {}) {
     // State of component [var]
     box.state = "normal";
     // Created items by data [var]
-    box.visibleItemDataList = [];
+    box.visibleItemDataList = [...box.itemDataList];
     // [var]
     box.titleCellList = [];
     // [var]
@@ -734,7 +734,7 @@ const SmartTable = function (params = {}) {
 
         const totalData = box.visibleItemDataList.length;
 
-        if (totalData === 0) {
+        if (totalData == 0) {
             box.boxInfoLine.label.text = "0 - 0 / 0";
             box.lblNoDataFound.opacity = 1;
             // TODO: Show a alert text at center (No data!)
@@ -1079,7 +1079,7 @@ const SmartTable = function (params = {}) {
 
     box.selectKeyForSearch = function() {
 
-        
+
 
     };
 
