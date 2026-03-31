@@ -239,7 +239,7 @@ const SmartTable = function (params = {}) {
                     const newValue = _rowData[titleData.dataTitle] ?? "";
 
                     // Sadece değer değişmişse DOM'a dokun
-                    if (cell.label.text != newValue) {
+                    if (cell.label.text !== newValue) {
                         cell.label.text = newValue;
                     }
 
