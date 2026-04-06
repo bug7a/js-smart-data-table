@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        
+        <title>New JS Component</title>
+        
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0"><!-- , user-scalable=no -->
+
+        <!-- LIBRARY FILES -->
+        <!-- <link rel="preload" href="image.png" as="image"> -->
+        <link rel="preload" href="basic/font/open-sans/OpenSans-Regular.ttf" as="font" crossorigin="anonymous">
+        <link rel="stylesheet" type="text/css" href="basic/basic.min.css">
+        <script src="basic/basic.js" type="text/javascript" charset="utf-8"></script>
+        <!--<script src="basic/scroll-bar.min.js" type="text/javascript" charset="utf-8"></script>-->
+
+        <script src="_component-template.js" type="text/javascript" charset="utf-8"></script>
+        <!-- <script src="_component-template.min.js" type="text/javascript" charset="utf-8"></script> -->
+
+        <!-- ALL COMPONENTS IN ONE FILE -->
+        <!-- <script src="components.js" type="text/javascript" charset="utf-8"></script> -->
+
+        <script>
+        
+        // *** VARIABLES:
+        //const compList = []; // When multiple objects are created by code, they can be added to an array.
+        let comp1, comp2, comp3;
+
+        // First running function.
+        window.onload = function() {
+
+            // GROUP: Autolayout
+            VGroup({
+                gap: 12,
+            });
+
+                // COMP NAME: #1
+                comp1 = CompName({
+                    key: "1",
+                    badgetText: "7",
+                    iconFile: "assets/categories/cappuccino.png",
+                    iconStyle: {
+                        //invertColor: 1,
+                    },
+                    labelText: "Cappuccino",
+                    descText: "Hot",
+                    //invertColor: 1,
+                });
+                that.onClick = function(self) {
+                    println(`Clicked Comp ${self.key}`);
+                };
+                //compList.push(that);
+
+                // COMP NAME: #2
+                comp2 = CompName({
+                    key: "2",
+                    badgetText: "11",
+                    iconFile: "assets/categories/milkshake.png",
+                    labelText: "Milkshake",
+                    descText: "Cold",
+                });
+                that.onClick = function(self) {
+                    println(`Clicked Comp ${self.key}`);
+                };
+                //compList.push(that);
+
+                // COMP NAME: #3
+                comp3 = CompName({
+                    key: "3",
+                    badgetText: "21",
+                    iconFile: "assets/categories/orange-juice.png",
+                    labelText: "Orange Juice",
+                    descText: "Cold",
+                });
+                that.onClick = function(self) {
+                    println(`Clicked Comp ${self.key}`);
+                };
+                //compList.push(that);
+
+            endGroup(); // END GROUP
+
+            //comp2.setBadgetText("2");
+            //comp2.setBackgroundOverColor("indianred");
+            
+        };
+        
+        // Function running every second.
+        const loop = function() {
+                        
+        };
+        
+        // *** OTHER FUNCTIONS:
+        const doSomthing1 = function() {
+            
+        };
+        
+        const doSomething2 = function() {
+            
+        };
+
+        </script>
+
+    </head>
+    <body>
+        
+        <!-- HTML content -->
+        
+    </body>
+</html>
